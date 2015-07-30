@@ -34,8 +34,8 @@ path.link {
   cursor: default;
 }
 path.linkSelected {
-  fill: none;
-  stroke: #111;
+  
+  stroke: green;
   stroke-width: 4px;
   cursor: default;
 }
@@ -54,6 +54,7 @@ path.link.hidden {
 }
 
 circle.node {
+
   stroke-width: 3px;
   cursor: pointer;
 }
@@ -64,8 +65,15 @@ text {
   font: 12px helvetica;
   pointer-events: none;
 }
-
+text2 {
+  font: 12px helvetica;
+  pointer-events: none;
+}
 text.id {
+  text-anchor: middle;
+  font-weight: bold;
+}
+text.linkText {
   text-anchor: middle;
   font-weight: bold;
 }
@@ -84,19 +92,7 @@ var svg = d3.select('body')
   .attr('width', width)
   .attr('height', height);
 
-var colorArr = [
-    //red
-    "#d62728",
-    //honey
-    "#e7ba52",
-    
-    //silver
-    "#7f7f7f",
-    //purple
-    "#9467bd",
-    //cyan
-    "#1f77b4"
-];
+
 
 var jointColor = {
     //red
@@ -117,28 +113,6 @@ var jointColor = {
 
 
 
-var rev = "R";
-var hel = "H";
-var sph = "S";
-var pris = "P";
-var cyl = "C";
-//default joints to revolute joints
-var joint = rev;
-
-
-var jointArr = [
-  //revolute
-  {id: 0, rev: colorArr[0]},
-  //helical
-  {id: 1, hel: colorArr[1]},
-  //spherical
-  {id: 2, sphr: colorArr[2]},
-  //prismatic
-  {id: 3, pris: colorArr[3]},
-  //cylindrical
-  {id: 4, cyl: colorArr[4]}
-];
-
 //initialize starting screen to ave one revolute joint
 var nodes = [
     {id: 0, joint: "R"}
@@ -154,6 +128,7 @@ var nodes = [
 var force = d3.layout.force()
     .nodes(nodes)
     .links(links)
+    //.linkStrength(10)
     .size([width, height])
     .linkDistance(function(d){
       return d.length;
@@ -168,7 +143,7 @@ var drag_line = svg.append('svg:path')
   .attr('d', 'M0,0L0,0');
 
 // handles to link and node element groups
-var path = svg.append('svg:g').selectAll('path'),
+var path = svg.append('svg:g').selectAll('g'),
     circle = svg.append('svg:g').selectAll('g');
 
 // mouse event vars
@@ -183,9 +158,18 @@ function resetMouseVars() {
   mouseup_node = null;
   mousedown_link = null;
 }
-var linkText = "adsf";
+
 // update force layout (called automatically each iteration)
 function tick() {
+  
+  path.selectAll('text')
+  .attr('x', function(d){ 
+    return d.target.x+ 5;})
+  .attr('y', function(d){
+   return d.source.y+5;});
+
+
+ 
   /*
   link.attr("x1", function (d) { return d.source.x; })
         .attr("y1", function (d) { return d.source.y; })
@@ -200,7 +184,7 @@ function tick() {
             return ((d.source.y + d.target.y)/2);
         });*/
   // draw directed edges with proper padding from node centers
-  path.attr('d', function(d) {
+  path.selectAll('path').attr('d', function(d) {
     
 
     if(deltaX == 0 || deltaY == 0){
@@ -235,10 +219,12 @@ function restart() {
 
 
   // add new links
-  path.enter().append('svg:path')
-    .attr('class', 'link')
-    
-    .on('mousedown', function(d) {
+  var vis = path.enter().append('svg:g');
+  vis.append('svg:path')
+      .attr('class', function(d){
+          return selected_link == d ? 'linkSelected' : 'link'
+        })
+      .on('mousedown', function(d) {
       if(d3.event.ctrlKey) return;
 
       // select link
@@ -248,10 +234,59 @@ function restart() {
       else selected_link = mousedown_link;
       selected_node = null;
       restart();
+/*
+      if(selected_link){
+
+        /*
+        path.selectAll('link')
+          .style('fill', function(d){
+            console.log("asdfasdfasdf");
+            return (d===selected_link) ? "orange" :  d.linkColor
+          });*/
+      //  path.attr('class', 'linkSelected');
+    //  }
     });
-  
+/*
+    vis.append('svg:path').attr('class', function(d){
+          return selected_link == d ? 'linkSelected' : 'link'
+        });
+        path.attr('class', function(d){
+          return selected_link == d ? 'linkSelected' : 'link'
+        });*/
+
+  vis.append('svg:text')
+    .attr('x', 100)
+    .attr('y', 400)
+    .attr('class', 'linkText');
+    //.text("asdasdasdasdasd");
+  d3.selectAll('.linkText')
+    //.text("test test test");
+    .text(function(d){
+      return d.length;
+    });
+
   // remove old links
   path.exit().remove();
+ 
+
+  //path = path.data(links, function(d){ return d.id});
+/*
+  var v = path.enter().append('svg:path');
+  v.append('svg:text')
+    .attr('x', 100)
+    .attr('y', 400)
+    .attr('class', 'link')
+    .text("asdasdasdasdasd");
+*/
+
+
+
+
+
+
+
+
+
 
 
   // circle (node) group
@@ -263,10 +298,9 @@ function restart() {
     //when node is clicked on, darken the node and make the others their respective color
 
     .style('fill', function(d) { 
+      //console.log("qwerwqerqwerwqere");
       return (d === selected_node) ? d3.rgb(jointColor[d.joint]).darker().toString() : jointColor[d.joint]
     });
-    //.classed('helical', function(d) { return d.joint});
-    //.classed('reflexive', function(d) { return d.reflexive; });
 
   // add new nodes
   var g = circle.enter().append('svg:g');
@@ -314,6 +348,12 @@ function restart() {
         //.style('marker-end', 'url(#end-arrow)')
         .classed('hidden', false)
         .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y);
+
+
+      if(selected_link){
+        selected_link
+      }
+
 
       restart();
     })
@@ -364,7 +404,7 @@ function restart() {
       
 
       // select new link
-      selected_link = link;
+      selected_link = null;
       selected_node = null;
       restart();
     });
@@ -381,6 +421,22 @@ function restart() {
   d3.selectAll('.id')
     .text(function(d){return d.joint;});
   // remove old nodes
+/*
+  g.append('svg:text')
+    .attr('x', 0)
+    .attr('y', 30)
+    .attr('class', 'linkText')
+    //.text("asdfasdfasdfasdf");
+
+
+  d3.selectAll('.link') 
+    //.text(function(d){return "asdfasdfsadfasdf";});
+    //.text(links[links.indexOf(selected_link)].length);
+    //.text(function(d){return d.length;});
+    .text("asdf");
+*/
+
+  
   circle.exit().remove();
 
   // set the graph in motion
@@ -436,7 +492,6 @@ function mouseup() {
 // only respond once per keydown
 var lastKeyDown = -1;
 
-var key,color;
 
 function keydown() {
   
@@ -514,6 +569,7 @@ function keydown() {
         if(selected_link) {
           //console.log("added");
           //add length to the selected link
+
           links[links.indexOf(selected_link)].length += 20;
         }
       restart();
@@ -523,8 +579,11 @@ function keydown() {
       case 40: // Up arrow
         if(selected_link) {
           //console.log("subtracted");
+
+          if(selected_link.length >= 20){
           //subtract length from the selected link
           links[links.indexOf(selected_link)].length -= 20;
+        }
         }
       restart();
       break;
