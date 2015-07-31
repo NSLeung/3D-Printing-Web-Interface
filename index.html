@@ -29,7 +29,7 @@ svg:not(.active):not(.ctrl) {
 
 path.link {
   fill: none;
-  stroke: #000;
+  stroke: #aaa;
   stroke-width: 4px;
   cursor: default;
 }
@@ -65,16 +65,12 @@ text {
   font: 12px helvetica;
   pointer-events: none;
 }
-text2 {
-  font: 12px helvetica;
-  pointer-events: none;
-}
+
 text.id {
   text-anchor: middle;
   font-weight: bold;
 }
 text.linkText {
-  text-anchor: middle;
   font-weight: bold;
 }
 </style>
@@ -159,30 +155,17 @@ function resetMouseVars() {
   mousedown_link = null;
 }
 
+    
+
 // update force layout (called automatically each iteration)
 function tick() {
-  
+
   path.selectAll('text')
-  .attr('x', function(d){ 
-    return d.target.x+ 5;})
-  .attr('y', function(d){
-   return d.source.y+5;});
+      .attr('x', function(d) {
+          return (d.source.x + d.target.x)/2; })
+      .attr('y', function(d) {
+          return (d.source.y + d.target.y)/2; });
 
-
- 
-  /*
-  link.attr("x1", function (d) { return d.source.x; })
-        .attr("y1", function (d) { return d.source.y; })
-        .attr("x2", function (d) { return d.target.x; })
-        .attr("y2", function (d) { return d.target.y; });
-
-  linkText
-        .attr("x", function(d) {
-            return ((d.source.x + d.target.x)/2);
-        })
-        .attr("y", function(d) {
-            return ((d.source.y + d.target.y)/2);
-        });*/
   // draw directed edges with proper padding from node centers
   path.selectAll('path').attr('d', function(d) {
     
@@ -210,8 +193,10 @@ function tick() {
   circle.attr('transform', function(d) {
     return 'translate(' + d.x + ',' + d.y + ')';
   });
+
 }
 
+   
 // update graph (called when needed)
 function restart() {
   // path (link) group
@@ -234,29 +219,15 @@ function restart() {
       else selected_link = mousedown_link;
       selected_node = null;
       restart();
-/*
-      if(selected_link){
 
-        /*
-        path.selectAll('link')
-          .style('fill', function(d){
-            console.log("asdfasdfasdf");
-            return (d===selected_link) ? "orange" :  d.linkColor
-          });*/
-      //  path.attr('class', 'linkSelected');
-    //  }
     });
-/*
-    vis.append('svg:path').attr('class', function(d){
-          return selected_link == d ? 'linkSelected' : 'link'
-        });
-        path.attr('class', function(d){
-          return selected_link == d ? 'linkSelected' : 'link'
-        });*/
+
 
   vis.append('svg:text')
-    .attr('x', 100)
-    .attr('y', 400)
+    .attr('x', 20)
+    .attr('y', 20)
+    .attr("dy", ".35em")
+    .attr("text-anchor", "middle")
     .attr('class', 'linkText');
     //.text("asdasdasdasdasd");
   d3.selectAll('.linkText')
@@ -264,24 +235,6 @@ function restart() {
     .text(function(d){
       return d.length;
     });
-
-  // remove old links
-  path.exit().remove();
- 
-
-  //path = path.data(links, function(d){ return d.id});
-/*
-  var v = path.enter().append('svg:path');
-  v.append('svg:text')
-    .attr('x', 100)
-    .attr('y', 400)
-    .attr('class', 'link')
-    .text("asdasdasdasdasd");
-*/
-
-
-
-
 
 
 
