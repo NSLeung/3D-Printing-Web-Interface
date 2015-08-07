@@ -3,14 +3,16 @@
   <head>
     <meta charset="utf-8">
     <title>Project</title>
-   <!-- <link rel="stylesheet" href="app.css">-->
+
   </head>
   
   <body>
+
+    <button id="close-CSS" onclick = "convertToYaml()">Download YAML File</button>
   </body>
 
   <script src="http://d3js.org/d3.v3.min.js"></script>
-<!--  <script src="app.js"></script> -->
+
 </html>
 <style>
 svg {
@@ -29,13 +31,13 @@ svg:not(.active):not(.ctrl) {
 
 path.link {
   fill: none;
-  stroke: #000;
+  stroke: #aaa;
   stroke-width: 4px;
   cursor: default;
 }
 path.linkSelected {
-  fill: none;
-  stroke: #111;
+  
+  stroke: green;
   stroke-width: 4px;
   cursor: default;
 }
@@ -47,6 +49,7 @@ svg:not(.active):not(.ctrl) path.link {
 
 path.link.dragline {
   pointer-events: none;
+
 }
 
 path.link.hidden {
@@ -54,6 +57,7 @@ path.link.hidden {
 }
 
 circle.node {
+
   stroke-width: 3px;
   cursor: pointer;
 }
@@ -69,10 +73,55 @@ text.id {
   text-anchor: middle;
   font-weight: bold;
 }
+text.linkText {
+  font-weight: bold;
+}
+text.hidden {
+  stroke-width: 0;
+  font: 0px helvetica;
+}
+
+button {
+    font: 12px helvetica;
+    font-weight: bold;
+    color: #0000ff;
+    display: inline-block;
+    height: 84px;
+    padding: 0;
+    margin: 0;
+    vertical-align: top;
+    width: 104px;
+
+    /*adjust the roundness*/
+    border-radius: 20px;
+    moz-border-radius: 20px;
+    webkit-border-radius: 20px;
+}
+
+#close-image img {
+    fill: #0000ff;
+    display: block;
+    height: 80px;  
+    width: 100px;
+
+
+}
+
+#close-CSS {
+    
+    fill: #0000ff;
+    background-size: 40px 50px;
+    height: 84px;  
+    width: 84px;
+
+
+}
+
 </style>
 
 
 <script>
+
 // set up SVG for D3
 var width  = 700,
     height = 500,
@@ -84,19 +133,7 @@ var svg = d3.select('body')
   .attr('width', width)
   .attr('height', height);
 
-var colorArr = [
-    //red
-    "#d62728",
-    //honey
-    "#e7ba52",
-    
-    //silver
-    "#7f7f7f",
-    //purple
-    "#9467bd",
-    //cyan
-    "#1f77b4"
-];
+
 
 var jointColor = {
     //red
@@ -111,35 +148,9 @@ var jointColor = {
     //cyan
     "C": "#1f77b4"
 };
-    
-// set up initial nodes and links
-//  - nodes are known by 'id', not by index in array.
 
 
-
-var rev = "R";
-var hel = "H";
-var sph = "S";
-var pris = "P";
-var cyl = "C";
-//default joints to revolute joints
-var joint = rev;
-
-
-var jointArr = [
-  //revolute
-  {id: 0, rev: colorArr[0]},
-  //helical
-  {id: 1, hel: colorArr[1]},
-  //spherical
-  {id: 2, sphr: colorArr[2]},
-  //prismatic
-  {id: 3, pris: colorArr[3]},
-  //cylindrical
-  {id: 4, cyl: colorArr[4]}
-];
-
-//initialize starting screen to ave one revolute joint
+//initialize starting screen to have one revolute joint
 var nodes = [
     {id: 0, joint: "R"}
   ],
@@ -154,6 +165,7 @@ var nodes = [
 var force = d3.layout.force()
     .nodes(nodes)
     .links(links)
+    //.linkStrength(10)
     .size([width, height])
     .linkDistance(function(d){
       return d.length;
@@ -168,7 +180,7 @@ var drag_line = svg.append('svg:path')
   .attr('d', 'M0,0L0,0');
 
 // handles to link and node element groups
-var path = svg.append('svg:g').selectAll('path'),
+var path = svg.append('svg:g').selectAll('g'),
     circle = svg.append('svg:g').selectAll('g');
 
 // mouse event vars
@@ -183,24 +195,20 @@ function resetMouseVars() {
   mouseup_node = null;
   mousedown_link = null;
 }
-var linkText = "adsf";
+
+    
+
 // update force layout (called automatically each iteration)
 function tick() {
-  /*
-  link.attr("x1", function (d) { return d.source.x; })
-        .attr("y1", function (d) { return d.source.y; })
-        .attr("x2", function (d) { return d.target.x; })
-        .attr("y2", function (d) { return d.target.y; });
 
-  linkText
-        .attr("x", function(d) {
-            return ((d.source.x + d.target.x)/2);
-        })
-        .attr("y", function(d) {
-            return ((d.source.y + d.target.y)/2);
-        });*/
+  path.selectAll('text')
+      .attr('x', function(d) {
+          return (d.source.x + d.target.x)/2; })
+      .attr('y', function(d) {
+          return (d.source.y + d.target.y)/2; });
+
   // draw directed edges with proper padding from node centers
-  path.attr('d', function(d) {
+  path.selectAll('path').attr('d', function(d) {
     
 
     if(deltaX == 0 || deltaY == 0){
@@ -226,8 +234,10 @@ function tick() {
   circle.attr('transform', function(d) {
     return 'translate(' + d.x + ',' + d.y + ')';
   });
+
 }
 
+   
 // update graph (called when needed)
 function restart() {
   // path (link) group
@@ -235,10 +245,12 @@ function restart() {
 
 
   // add new links
-  path.enter().append('svg:path')
-    .attr('class', 'link')
-    
-    .on('mousedown', function(d) {
+  var vis = path.enter().append('svg:g');
+  vis.append('svg:path')
+      .attr('class', function(d){
+          return selected_link == d ? 'linkSelected' : 'link'
+        })
+      .on('mousedown', function(d) {
       if(d3.event.ctrlKey) return;
 
       // select link
@@ -248,10 +260,30 @@ function restart() {
       else selected_link = mousedown_link;
       selected_node = null;
       restart();
+
     });
-  
-  // remove old links
+ path.selectAll('path')
+    .attr('class', function(d){
+        return selected_link == d ? 'linkSelected' : 'link'
+    })
+
+  vis.append('svg:text')
+    .attr('x', 20)
+    .attr('y', 20)
+    .attr("dy", ".35em")
+    .attr("text-anchor", "middle")
+    .attr('class', 'linkText');
+    //.text("asdasdasdasdasd");
+  d3.selectAll('.linkText')
+    //.text("test test test");
+    .text(function(d){
+      return d.length;
+    });
+
+
+
   path.exit().remove();
+
 
 
   // circle (node) group
@@ -263,10 +295,9 @@ function restart() {
     //when node is clicked on, darken the node and make the others their respective color
 
     .style('fill', function(d) { 
+      //console.log("qwerwqerqwerwqere");
       return (d === selected_node) ? d3.rgb(jointColor[d.joint]).darker().toString() : jointColor[d.joint]
     });
-    //.classed('helical', function(d) { return d.joint});
-    //.classed('reflexive', function(d) { return d.reflexive; });
 
   // add new nodes
   var g = circle.enter().append('svg:g');
@@ -315,6 +346,12 @@ function restart() {
         .classed('hidden', false)
         .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y);
 
+
+      if(selected_link){
+        selected_link
+      }
+
+
       restart();
     })
     .on('mouseup', function(d) {
@@ -350,12 +387,7 @@ function restart() {
       }
 
       var link;
-      /*
-      link = links.filter(function(l) {
-        return (l.source === source && l.target === target);
-      })[0];
-*/
-      
+
         //every link defaults at 100
         link = {source: source, target: target, length: 100};
         
@@ -364,7 +396,7 @@ function restart() {
       
 
       // select new link
-      selected_link = link;
+      selected_link = null;
       selected_node = null;
       restart();
     });
@@ -374,9 +406,6 @@ function restart() {
       .attr('x', 0)
       .attr('y', 4)
       .attr('class', 'id');
-      //.text(function(d){
-       // return d.id;
-      //});
   
   d3.selectAll('.id')
     .text(function(d){return d.joint;});
@@ -390,7 +419,7 @@ function restart() {
 
 function mousedown() {
   // prevent I-bar on drag
-  //d3.event.preventDefault();
+  d3.event.preventDefault();
   
   // because :active only works in WebKit?
   svg.classed('active', true);
@@ -436,7 +465,6 @@ function mouseup() {
 // only respond once per keydown
 var lastKeyDown = -1;
 
-var key,color;
 
 function keydown() {
   
@@ -454,12 +482,16 @@ function keydown() {
 
     case 46: // delete
 
+      
       if(selected_node) {
         nodes.splice(nodes.indexOf(selected_node), 1);
         spliceLinksForNode(selected_node);
       } else if(selected_link) {
+        svg.selectAll('.linkSelected').attr('class', 'link dragline hidden');
+        //svg.selectAll('text.linkText').attr('class', 'hidden');
         links.splice(links.indexOf(selected_link), 1);
       }
+      
       selected_link = null;
       selected_node = null;
       restart();
@@ -512,22 +544,30 @@ function keydown() {
 
       case 38: // Up arrow
         if(selected_link) {
-          //console.log("added");
+          
           //add length to the selected link
+
           links[links.indexOf(selected_link)].length += 20;
         }
       restart();
       break;
 
 
-      case 40: // Up arrow
+      case 40: // Down arrow
         if(selected_link) {
-          //console.log("subtracted");
+         
+
+          if(selected_link.length > 20){
           //subtract length from the selected link
           links[links.indexOf(selected_link)].length -= 20;
         }
+        }
       restart();
       break;
+
+      case 65: //A
+        convertToYaml();
+
     }
 }
 
@@ -552,80 +592,6 @@ function keyup() {
   }
 }
 
-
-/*
-
-var link = svg.selectAll(".link")
-    .data(links)
-    .enter()
-    .append("g")
-    .attr("class", "link")
-    .append("line")
-    .attr("class", "link-line")
-    .style("stroke-width", function (d) {
-        return Math.sqrt(d.joint);
-    });
-
-var linkText = svg.selectAll(".link")
-    .append("text")
-    .attr("class", "link-label")
-   .attr("font-family", "Arial, Helvetica, sans-serif")
-    .attr("fill", "Black")
-    .style("font", "normal 12px Arial")
-    .attr("dy", ".35em")
-    .attr("text-anchor", "middle")/*
-    .text(function(d) {
-        return d.id;
-    });
-
-
-// Append text to Link edges
-var linkText = svg.selectAll(".gLink")
-    .data(force.links())
-    .append("text")
-    .attr("font-family", "Arial, Helvetica, sans-serif")
-    .attr("x", function(d) {
-        if (d.target.x > d.source.x) {
-            return (d.source.x + (d.target.x - d.source.x)/2); }
-        else {
-            return (d.target.x + (d.source.x - d.target.x)/2); }
-    })
-    .attr("y", function(d) {
-        if (d.target.y > d.source.y) {
-            return (d.source.y + (d.target.y - d.source.y)/2); }
-        else {
-            return (d.target.y + (d.source.y - d.target.y)/2); }
-    })
-    .attr("fill", "Black")
-    .style("font", "normal 12px Arial")
-    .attr("dy", ".35em")
-    .text(function(d) { return d.length; });
-// Draw lines for Links between Nodes
-var link = svg.selectAll(".gLink")
-    .data(force.links())
-*/
-/*
-var path = svg.append("svg:g").selectAll("path")
-    .data(force.links())
-  .enter().append("svg:path")
-    .attr("class", function(d) { return "link " + d.type; })
-    .attr("id",function(d,i) { return "linkId_" + i; })
-    .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
-var linktext = svg.append("svg:g").selectAll("g.linklabelholder").data(force.links());
-     linktext.enter().append("g").attr("class", "linklabelholder")
-     .append("text")
-     .attr("class", "linklabel")
-     .style("font-size", "13px")
-     .attr("x", "50")
-     .attr("y", "-20")
-     .attr("text-anchor", "start")
-     .style("fill","#000")
-     .append("textPath")
-    .attr("xlink:href",function(d,i) { return "#linkId_" + i;})
-     .text(function(d) { 
-         return "my text"; //Can be dynamic via d object 
-     });    
-*/
 // app starts here
 svg.on('mousedown', mousedown)
   .on('mousemove', mousemove)
@@ -634,4 +600,173 @@ d3.select(window)
   .on('keydown', keydown)
   .on('keyup', keyup);
 restart();
+
+//json To Yaml
+(function (self) { 
+  /*
+   * TODO, lots of concatenation (slow in js)
+   */
+  var spacing = "  ";
+
+  function getType(obj) {
+    var type = typeof obj;
+    if (obj instanceof Array) {
+      return 'array';
+    } else if (type == 'string') {
+      return 'string';
+    } else if (type == 'boolean') {
+      return 'boolean';
+    } else if (type == 'number') {
+      return 'number';
+    } else if (type == 'undefined' || obj === null) {
+      return 'null';
+    } else {
+      return 'hash';
+    }
+  }
+
+  function convert(obj, ret) {
+    var type = getType(obj);
+
+    switch(type) {
+      case 'array':
+        convertArray(obj, ret);
+        break;
+      case 'hash':
+        convertHash(obj, ret);
+        break;
+      case 'string':
+        convertString(obj, ret);
+        break;
+      case 'null':
+        ret.push('null');
+        break;
+      case 'number':
+        ret.push(obj.toString());
+        break;
+      case 'boolean':
+        ret.push(obj ? 'true' : 'false');
+        break;
+    }
+  }
+
+  function convertArray(obj, ret) {
+    for (var i=0; i<obj.length; i++) {
+      var ele     = obj[i];
+      var recurse = [];
+      convert(ele, recurse);
+
+      for (var j=0; j<recurse.length; j++) {
+        ret.push((j == 0 ? "- " : spacing) + recurse[j]);
+      }
+    }
+  }
+
+  function convertHash(obj, ret) {
+    for (var k in obj) {
+      var recurse = [];
+      if (obj.hasOwnProperty(k)) {
+        var ele = obj[k];
+        convert(ele, recurse);
+        var type = getType(ele);
+        if (type == 'string' || type == 'null' || type == 'number' || type == 'boolean') {
+          ret.push(normalizeString(k) + ': ' +  recurse[0]);
+        } else {
+          ret.push(normalizeString(k) + ': ');
+          for (var i=0; i<recurse.length; i++) {
+            ret.push(spacing + recurse[i]);
+          }
+        }
+      }
+    }
+  }
+
+  function normalizeString(str) {
+    if (str.match(/^[\w]+$/)) {
+      return str;
+    } else {
+      return '"'+escape(str).replace(/%u/g,'\\u').replace(/%U/g,'\\U').replace(/%/g,'\\x')+'"';
+    }
+  }
+
+  function convertString(obj, ret) {
+    ret.push(normalizeString(obj));
+  }
+  
+  self.json2yaml = function(obj) {
+    if (typeof obj == 'string') {
+      obj = JSON.parse(obj);
+    }
+
+    var ret = [];
+    convert(obj, ret);
+    return ret.join("\n");
+  };
+})(this);
+
+
+
+function convertToYaml(){
+
+//make copies of the original nodes and links arrays (weird workaround...)
+var nodesCopy = JSON.parse(JSON.stringify(nodes));;
+var linksCopy = JSON.parse(JSON.stringify(links));;
+
+//remove all irrevelant node information like id, weight, x and y coords...
+for(var i = 0; i<nodesCopy.length; i++){
+  delete nodesCopy[i].id;
+  //delete nodesCopy[i].index;
+  delete nodesCopy[i].weight;
+  delete nodesCopy[i].x;
+  delete nodesCopy[i].y;
+  delete nodesCopy[i].px;
+  delete nodesCopy[i].py;
+}
+
+
+//remove all irrelevant link information like source and target nodes
+for(var p = 0; p < linksCopy.length; p++){
+  delete linksCopy[p].source.id;
+  //delete linksCopy[p].source.index;
+  delete linksCopy[p].source.weight;
+  delete linksCopy[p].source.x;
+  delete linksCopy[p].source.y;
+  delete linksCopy[p].source.px;
+  delete linksCopy[p].source.py;
+
+
+  delete linksCopy[p].target.id;
+  //delete linksCopy[p].target.index;
+  delete linksCopy[p].target.weight;
+  delete linksCopy[p].target.x;
+  delete linksCopy[p].target.y;
+  delete linksCopy[p].target.px;
+  delete linksCopy[p].target.py;
+  /*
+  delete linksCopy[p].source;
+  delete linksCopy[p].target;
+  */
+}
+
+
+//convert nodes array to yaml
+var nodesJSON = JSON.stringify(nodesCopy);
+var nodesYAML = json2yaml(nodesJSON);
+console.log("nodes: " +"\n" + nodesYAML);
+
+//convert links array to yaml
+var linksJSON = JSON.stringify(linksCopy);
+var linksYAML = json2yaml(linksJSON);
+console.log("links: " +"\n" + linksYAML);
+
+
+var yamlContent = "data:text/csv;charset=utf-8,";
+var encodedUri = encodeURI(yamlContent+nodesYAML+'\n'+linksYAML);
+var link = document.createElement("a");
+link.setAttribute("href", encodedUri);
+link.setAttribute("download", "data.yaml");
+
+link.click(); // This will download the data file named "my_data.csv".
+
+}
 </script>
